@@ -11,3 +11,7 @@ zjut 2016级16选8讲座抢票工具
 重新运行时清空awesome\plugins\re.txt 文件，否则会向上一次的问卷提交
 
 注意验证码识别api账号密码的填写
+
+5.8
+因为若快会存在崩溃的情况，更新了post的脚本，使用了https://www.jianshu.com/p/34961ceedcb4
+现在不需要验证码了
