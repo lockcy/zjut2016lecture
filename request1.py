@@ -6,6 +6,7 @@ import re
 import time
 import random
 import os
+from urllib import parse
 class WenJuanXing:
     def __init__(self, url):
         """
@@ -22,9 +23,19 @@ class WenJuanXing:
         这个函数中生成问卷的结果，可根据问卷结果，随机生成答案
         :return:
         """
-        self.data = {
-            'submitdata': '1$施蔚斌}2$201626811215}3$15869191255'
-        }
+        response=self.get_response()
+        index1=str(response).find('名字')
+        index2=str(response).find('联系方式')
+        index3=str(response).find('学号')
+        if index3-index2<0:
+            self.data = {
+                'submitdata': '1$data1'
+            }
+        else:
+            self.data = {
+                'submitdata': '1$data2'
+            }
+
 
     def set_header(self):
         """
@@ -32,7 +43,8 @@ class WenJuanXing:
         ip需要控制ip段，不然生成的大部分是国外的
         :return:
         """
-        ip = '{}.{}.{}.{}'.format(112, random.randint(64, 68), random.randint(0, 255), random.randint(0, 255))
+        #ip = '{}.{}.{}.{}'.format(112, random.randint(64, 68), random.randint(0, 255), random.randint(0, 255))
+        ip='223.104.247.233'
         self.header = {
             'X-Forwarded-For': ip,
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko\
@@ -97,13 +109,16 @@ class WenJuanXing:
             result.append(chr(f))
         return ''.join(result)
 
-    def get_start_time(self, response):
+    def get_start_time(self, response,flag):
         """
         通过正则表达式找出问卷starttime,问卷是构造post_url需要的参数
         :param response: 访问问卷网页，返回的reaponse
         :return: 找到的starttime
         """
-        start_time = re.search(r'\d+?/\d+?/\d+?\s\d+?:\d{2}', response.text)
+        if flag==1:
+            start_time = re.search(r'\d+?/\d+?/\d+?\s\d+?:\d{2}:\d{2}', response.text)
+        else:
+            start_time = re.search(r'\d+?/\d+?/\d+?\s\d+?:\d{2}', response.text)
         return start_time.group()
 
     def set_post_url(self):
@@ -118,8 +133,8 @@ class WenJuanXing:
         rn = self.get_rn(response)  # 获取rn
         id = self.get_id(response)  # 获取问卷id
         jqsign = self.get_jqsign(ktimes, jqnonce)  # 生成jqsign
-        #start_time = self.get_start_time(response)  # 获取starttime
-        start_time='2019/10/7 19:52'
+        start_time = self.get_start_time(response,1)  # 获取starttime
+        start_time = parse.quote(start_time)
         time_stamp = '{}{}'.format(int(time.time()), random.randint(100, 200))  # 生成一个时间戳，最后三位为随机数
         url = 'https://www.wjx.cn/joinnew/processjq.ashx?submittype=1&curID={}&t={}&starttim' \
               'e={}&ktimes={}&rn={}&jqnonce={}&jqsign={}'.format(id, time_stamp, start_time, ktimes, rn, jqnonce, jqsign)
@@ -131,6 +146,7 @@ class WenJuanXing:
         发送数据给服务器
         :return: 服务器返回的结果
         """
+        time.sleep(4)
         self.set_data()
         response = requests.post(url=self.post_url, data=self.data, headers=self.header, cookies=self.cookie)
         return response
@@ -154,14 +170,16 @@ class WenJuanXing:
             self.run()
 
 if __name__ == '__main__':
-    path=r'C:\Users\admin\Desktop\jiangzuo\awesome\plugins\re.txt'
-    size = os.path.getsize(path)
-    while size==0:
-        size = os.path.getsize(path)
-        continue
-    with open (path,'r') as f:
-        a=f.readline()
-        print (a)
+    # path=r'C:\Users\admin\Desktop\jiangzuo\awesome\plugins\re.txt'
+    # size = os.path.getsize(path)
+    # while size==0:
+    #     size = os.path.getsize(path)
+    #     continue
+    # with open (path,'r') as f:
+    #     a=f.readline()
+    #     print (a)
+
+    a=input()
     url='https://www.wjx.cn/jq/{0}.aspx'.format(a)
     w = WenJuanXing(url)
     w.mul_run(1)
